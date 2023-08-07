@@ -28,16 +28,16 @@ from colorama import init, Fore
 if not os.path.isfile('config_user.json'):
 
     print("You need to set parameter, they can be change any time in 'config_user' file")
-    Invite_per_linc = input("Enter how mach ref you need per linc: ")
-    print("New you need you metamask identificator, it look like this:")
+    print("New skript need you metamask identificator, it look like this:")
     print("chrome-extension://hpbbepbnmcaoajhapnmjfjakmaacabni/home.html#")
     print("You need only this parth 'hpbbepbnmcaoajhapnmjfjakmaacabni'")
-    identificator = input("Enter you personal metamask identificator: ")
-    max_workers = input("Enter how mach profile should run at one moment: ")
+    IDENTIFICATOR = input("Enter you personal MetaMask identificator: ")
+    MIN_DELAY = input("Enter minimal delay between action: ")
+    MAX_DELAY = input("Enter maximal delay between action: ")
     config_user = {
-        'Invite_per_linc': Invite_per_linc,
-        'identificator': identificator,
-        'max_workers': max_workers,
+        'IDENTIFICATOR': IDENTIFICATOR,
+        'MIN_DELAY': MIN_DELAY,
+        'MAX_DELAY': MAX_DELAY,
     }
 
     with open('config_user.json', 'w') as f:
@@ -51,20 +51,9 @@ with open('config_user.json', 'r') as f:
     config_user = json.load(f)
 
 
-Invite_per_linc = int(config_user['Invite_per_linc'])
-identificator = str(config_user['identificator'])
-max_workers = int(config_user['max_workers'])
-
-
-
-
-
-
-
-# Constants
-IDENTIFICATOR = "hpbbepbnmcaoajhapnmjfjakmaacabni"
-MIN_DELAY = 150
-MAX_DELAY = 200
+IDENTIFICATOR = str(config_user['IDENTIFICATOR'])
+MIN_DELAY = int(config_user['MIN_DELAY'])
+MAX_DELAY = int(config_user['MAX_DELAY'])
 METAMASK_URL = f"chrome-extension://{IDENTIFICATOR}/home.html#"
 DATA_PATH = "Data.xlsx"
 
@@ -535,6 +524,7 @@ while True:
         # Initialize logger for the current index/account.
         nugger = SetupGayLogger(f'Account {idx}')
         total_trx = df.at[idx, 'Mint_total']
+        nugger.info("You definitely should subscribe) 'https://t.me/CryptoBub_ble'")
 
         # Check if the account has already minted 7 times.
         if total_trx >= 7:
