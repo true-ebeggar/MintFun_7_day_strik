@@ -475,6 +475,7 @@ def process_profile(idx, nugger):
 
         # Navigate to the chosen NFT's page.
         driver.get(selected_link)
+        time.sleep(3)
         click_if_exists(driver, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[2]/div[3]/div[1]/button')
 
         # Confirm the transaction in MetaMask.
