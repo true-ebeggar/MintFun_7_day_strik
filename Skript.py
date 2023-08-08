@@ -251,8 +251,9 @@ def confirm_transaction(driver, logger):
         logger.info("Setting gas values in MetaMask.")
         click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[5]/div[2]/div/div/div/div[1]/button')
         click_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[2]/div/div[2]/div[1]/button')
-        input_text_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[2]/div/div[2]/div[1]/div[3]/div[2]/label/div[2]/input', "0,005")
-        input_text_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[2]/div/div[2]/div[1]/div[3]/div[3]/label/div[2]/input', "0,005")
+        gas = f"{random.uniform(0.005, 0.05):.5f}".replace(".", ",")
+        input_text_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[2]/div/div[2]/div[1]/div[3]/div[2]/label/div[2]/input', gas)
+        input_text_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[2]/div/div[2]/div[1]/div[3]/div[3]/label/div[2]/input', gas)
         click_if_exists(driver, '//*[@id="popover-content"]/div/div/section/div[3]/button')
         logger.info("Gas values set successfully.")
 
@@ -360,148 +361,150 @@ def process_profile(idx, nugger):
 
     # Go back to the primary browser window.
     driver.switch_to.window(initial_window_handle)
-
-    # Access MetaMask and input the password.
-    driver.get(METAMASK_URL)
-    input_text_if_exists(driver, '//*[@id="password"]', password)
-    # Progress through MetaMask prompts.
-    click_if_exists(driver, '//*[@id="app-content"]/div/div[3]/div/div/button')
-    time.sleep(5)
-    click_if_exists(driver, '//*[@id="app-content"]/div/div[1]/div/div[2]/div/div')
-    time.sleep(5)
-    click_if_exists(driver, "//*[contains(text(), 'Ethereum Mainnet')]")
-    nugger.info("Logged into the wallet, switched to 'ETH' mainnet")
-
-    # Navigate to mint.fun trending feed.
-    driver.get("https://mint.fun/feed/trending")
-    time.sleep(5)
-
-    # Check if there's a need to connect the wallet and handle it.
-    element = driver.find_element(By.XPATH, '//*[@id="__next"]/div[3]/div/nav/div/div/div/button/span')
-    text = element.text
-    if text == "Connect Wallet":
-        click_if_exists(driver, '//*[@id="__next"]/div[3]/div/nav/div/div/div/button')
-        click_if_exists(driver,
-                        '//*[@id="__CONNECTKIT__"]/div/div/div/div[2]/div[2]/div[4]/div/div/div/div[1]/button[1]')
-
-        # Manage MetaMask pop-up notifications.
-        metamask_window_handle = find_metamask_notification(driver, nugger)
-        if metamask_window_handle:
-            # Interact with the MetaMask pop-up.
-            click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]')
-            click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]')
-            click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[3]/button[2]')
-            click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/button[2]')
-            driver.switch_to.window(initial_window_handle)
-        else:
-            driver.switch_to.window(initial_window_handle)
-            nugger.warning("Metamask pop-up not found. System might be overloaded.")
-        nugger.info("Connected to the 'Element' page...")
-    else:
-        nugger.info("Already logged in. Skipping connection step.")
-
-    # Switching to the Zora network in MetaMask.
-    driver.get(METAMASK_URL)
-
-    # Navigate to the MetaMask network selection dropdown.
-    click_if_exists(driver, '//*[@id="app-content"]/div/div[1]/div/div[2]/div/div')
     try:
-        # Wait for the interface to load before proceeding.
+        # Access MetaMask and input the password.
+        driver.get(METAMASK_URL)
+        input_text_if_exists(driver, '//*[@id="password"]', password)
+        # Progress through MetaMask prompts.
+        click_if_exists(driver, '//*[@id="app-content"]/div/div[3]/div/div/button')
+        time.sleep(5)
+        click_if_exists(driver, '//*[@id="app-content"]/div/div[1]/div/div[2]/div/div')
+        click_if_exists(driver, "//*[contains(text(), 'Ethereum Mainnet')]")
+        nugger.info("Logged into the wallet, switched to 'ETH' mainnet")
+
+        # Navigate to mint.fun trending feed.
+        driver.get("https://mint.fun/feed/trending")
         time.sleep(5)
 
-        # Attempt to select 'Zora' from the network dropdown list.
-        element = driver.find_element(By.XPATH, "//*[contains(text(), 'Zora')]")
-        element.click()
+        # Check if there's a need to connect the wallet and handle it.
+        element = driver.find_element(By.XPATH, '//*[@id="__next"]/div[3]/div/nav/div/div/div/button/span')
+        text = element.text
+        if text == "Connect Wallet":
+            click_if_exists(driver, '//*[@id="__next"]/div[3]/div/nav/div/div/div/button')
+            click_if_exists(driver,
+                            '//*[@id="__CONNECTKIT__"]/div/div/div/div[2]/div[2]/div[4]/div/div/div/div[1]/button[1]')
 
-        # Log a message indicating the switch to Zora network.
-        nugger.info("Switched to the Zora network.")
-
-    except NoSuchElementException:
-        # If 'Zora' is not found in the dropdown, it means the network is not added.
-        # Log a message to indicate the missing network.
-        nugger.info("Zora network isn't added. Setting it up now.")
-
-        # Navigate to MetaMask's "Add Network" settings page.
-        driver.get(f"chrome-extension://{IDENTIFICATOR}/home.html#settings/networks/add-network")
-
-        # Input required network details to add 'Zora'.
-        # These details include Network Name, New RPC URL, Chain ID, Symbol, and Block Explorer URL.
-        input_text_if_exists(driver,
-                             '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/label/input',
-                             "Zora")
-        input_text_if_exists(driver,
-                             '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/label/input',
-                             "https://rpc.zora.energy/")
-        input_text_if_exists(driver,
-                             '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[3]/label/input',
-                             "7777777")
-        input_text_if_exists(driver,
-                             '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[4]/label/input',
-                             "ETH")
-        input_text_if_exists(driver,
-                             '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[5]/label/input',
-                             "https://explorer.zora.energy/")
-
-        # Wait and confirm the network addition.
-        time.sleep(2)
-        click_if_exists(driver, '/html/body/div[1]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[3]/button[2]')
-
-    # Navigate to the free Zora NFTs page.
-    nugger.info("Accessing free Zora NFTs page...")
-    driver.get("https://mint.fun/feed/free?chain=zora")
-
-    # Scroll down to load all available NFTs.
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)
-
-    # Fetch all the available NFT blocks.
-    blocks = driver.find_elements(By.XPATH, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[3]/div')
-
-    # Extract links from each block, representing individual NFTs.
-    all_links = []
-    for block in blocks:
-        link_xpath = './div/div[2]/div[1]/div[1]/div/span/a'
-        links = block.find_elements(By.XPATH, link_xpath)
-        for link in links:
-            link_url = link.get_attribute('href')
-            all_links.append(link_url)
-
-    # Log how many free NFTs were found.
-    nugger.info(f"Identified {len(all_links)} NFTs available for minting.")
-
-    # Randomly select an NFT to mint.
-    selected_link = random.choice(all_links)
-    nugger.info(f"Proceeding with this collection: {selected_link}")
-
-    # Navigate to the chosen NFT's page.
-    driver.get(selected_link)
-    click_if_exists(driver, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[2]/div[3]/div[1]/button')
-
-    # Confirm the transaction in MetaMask.
-    confirm_transaction(driver, nugger)
-    driver.switch_to.window(initial_window_handle)
-    nugger.info("Transaction sent. Waiting for minting confirmation...")
-
-    # Check the result of the minting process.
-    try:
-        time.sleep(10)
-        # Wait for the confirmation message.
-        element = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div[2]/div/div/div/div/div[1]'))
-        )
-        element_text = element.text
-
-        # If successful, log a success message.
-        if "successful" in element_text.lower():
-            nugger.info("Minting was successful!")
-            driver.close()
-            return 1
+            # Manage MetaMask pop-up notifications.
+            metamask_window_handle = find_metamask_notification(driver, nugger)
+            if metamask_window_handle:
+                # Interact with the MetaMask pop-up.
+                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]')
+                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]')
+                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[3]/button[2]')
+                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/button[2]')
+                driver.switch_to.window(initial_window_handle)
+            else:
+                driver.switch_to.window(initial_window_handle)
+                nugger.warning("Metamask pop-up not found. System might be overloaded.")
+            nugger.info("Connected to the 'Element' page...")
         else:
-            # If the status is unclear, log an ambiguous message.
-            nugger.error(f"Uncertain minting outcome: {element_text}")
-    except TimeoutException:
-        # If it takes too long, suggest a manual check.
-        nugger.error("Transaction took too long. Recommend checking manually.")
+            nugger.info("Already logged in. Skipping connection step.")
+
+        # Switching to the Zora network in MetaMask.
+        driver.get(METAMASK_URL)
+
+        # Navigate to the MetaMask network selection dropdown.
+        click_if_exists(driver, '//*[@id="app-content"]/div/div[1]/div/div[2]/div/div')
+        try:
+            # Wait for the interface to load before proceeding.
+            time.sleep(5)
+
+            # Attempt to select 'Zora' from the network dropdown list.
+            element = driver.find_element(By.XPATH, "//*[contains(text(), 'Zora')]")
+            element.click()
+
+            # Log a message indicating the switch to Zora network.
+            nugger.info("Switched to the Zora network.")
+
+        except NoSuchElementException:
+            # If 'Zora' is not found in the dropdown, it means the network is not added.
+            # Log a message to indicate the missing network.
+            nugger.info("Zora network isn't added. Setting it up now.")
+
+            # Navigate to MetaMask's "Add Network" settings page.
+            driver.get(f"chrome-extension://{IDENTIFICATOR}/home.html#settings/networks/add-network")
+
+            # Input required network details to add 'Zora'.
+            # These details include Network Name, New RPC URL, Chain ID, Symbol, and Block Explorer URL.
+            input_text_if_exists(driver,
+                                 '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/label/input',
+                                 "Zora")
+            input_text_if_exists(driver,
+                                 '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/label/input',
+                                 "https://rpc.zora.energy/")
+            input_text_if_exists(driver,
+                                 '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[3]/label/input',
+                                 "7777777")
+            input_text_if_exists(driver,
+                                 '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[4]/label/input',
+                                 "ETH")
+            input_text_if_exists(driver,
+                                 '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[2]/div[5]/label/input',
+                                 "https://explorer.zora.energy/")
+
+            # Wait and confirm the network addition.
+            time.sleep(2)
+            click_if_exists(driver, '/html/body/div[1]/div/div[3]/div/div[2]/div[2]/div/div[2]/div/div[3]/button[2]')
+
+        # Navigate to the free Zora NFTs page.
+        nugger.info("Accessing free Zora NFTs page...")
+        driver.get("https://mint.fun/feed/free?chain=zora")
+
+        # Scroll down to load all available NFTs.
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(5)
+
+        # Fetch all the available NFT blocks.
+        blocks = driver.find_elements(By.XPATH, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[3]/div')
+
+        # Extract links from each block, representing individual NFTs.
+        all_links = []
+        for block in blocks:
+            link_xpath = './div/div[2]/div[1]/div[1]/div/span/a'
+            links = block.find_elements(By.XPATH, link_xpath)
+            for link in links:
+                link_url = link.get_attribute('href')
+                all_links.append(link_url)
+
+        # Log how many free NFTs were found.
+        nugger.info(f"Identified {len(all_links)} NFTs available for minting.")
+
+        # Randomly select an NFT to mint.
+        selected_link = random.choice(all_links)
+        nugger.info(f"Proceeding with this collection: {selected_link}")
+
+        # Navigate to the chosen NFT's page.
+        driver.get(selected_link)
+        click_if_exists(driver, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[2]/div[3]/div[1]/button')
+
+        # Confirm the transaction in MetaMask.
+        confirm_transaction(driver, nugger)
+        driver.switch_to.window(initial_window_handle)
+        nugger.info("Transaction sent. Waiting for minting confirmation...")
+
+        # Check the result of the minting process.
+        try:
+            time.sleep(10)
+            # Wait for the confirmation message.
+            element = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div[2]/div/div/div/div/div[1]'))
+            )
+            element_text = element.text
+
+            # If successful, log a success message.
+            if "successful" in element_text.lower():
+                nugger.info("Minting was successful!")
+                driver.close()
+                return 1
+            else:
+                # If the status is unclear, log an ambiguous message.
+                nugger.error(f"Uncertain minting outcome: {element_text}")
+        except TimeoutException:
+            # If it takes too long, suggest a manual check.
+            nugger.error("Transaction took too long. Recommend checking manually.")
+    except Exception as e:
+        driver.close()
+        print(e)
 
 
 
@@ -546,8 +549,8 @@ while True:
         sleep_delay = 10
         try:
             result = process_profile(idx - 1, nugger)  # Adjusting for zero-based indexing
-        except Exception as e:
-            nugger.error(f"Error processing Account {idx}: {e}")
+        except Exception:
+            nugger.error(f"Error processing Account {idx}")
             continue
 
         # If minting was successful, update the records.
