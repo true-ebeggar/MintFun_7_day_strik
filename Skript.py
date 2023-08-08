@@ -366,8 +366,8 @@ def process_profile(idx, nugger):
     input_text_if_exists(driver, '//*[@id="password"]', password)
     # Progress through MetaMask prompts.
     click_if_exists(driver, '//*[@id="app-content"]/div/div[3]/div/div/button')
-    time.sleep(2)
     click_if_exists(driver, '//*[@id="app-content"]/div/div[1]/div/div[2]/div/div')
+    time.sleep(3)
     click_if_exists(driver, "//*[contains(text(), 'Ethereum Mainnet')]")
     nugger.info("Logged into the wallet, switched to 'ETH' mainnet")
 
