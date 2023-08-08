@@ -9,6 +9,8 @@ import os
 import pandas as pd
 import requests
 import json
+
+import selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -420,6 +422,7 @@ def process_profile(idx, nugger):
             nugger.info("Switched to the Zora network.")
 
         except NoSuchElementException:
+            click_if_exists(driver, "//*[contains(text(), 'Ethereum Mainnet')]")
             # If 'Zora' is not found in the dropdown, it means the network is not added.
             # Log a message to indicate the missing network.
             nugger.info("Zora network isn't added. Setting it up now.")
@@ -507,8 +510,10 @@ def process_profile(idx, nugger):
             # If it takes too long, suggest a manual check.
             nugger.error("Transaction took too long. Recommend checking manually.")
     finally:
-        driver.close()
-
+        try:
+            driver.close()
+        except selenium.common.exceptions.InvalidSessionIdException:
+            math = 1 - 4
 
 
 # Input the range of indices for accounts.
