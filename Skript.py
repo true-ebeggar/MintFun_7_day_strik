@@ -455,7 +455,7 @@ def process_profile(idx, nugger):
     time.sleep(2)
 
     # Fetch all the available NFT blocks.
-    blocks = driver.find_elements(By.XPATH, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[5]/div')
+    blocks = driver.find_elements(By.XPATH, '//*[@id="__next"]/div[3]/div/main/div/div[2]/div[3]/div')
 
     # Extract links from each block, representing individual NFTs.
     all_links = []
