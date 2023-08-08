@@ -390,8 +390,11 @@ def process_profile(idx, nugger):
                 # Interact with the MetaMask pop-up.
                 click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]')
                 click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]')
-                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[3]/button[2]')
-                click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/button[2]')
+                try:
+                    click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[3]/button[2]')
+                    click_if_exists(driver, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/button[2]')
+                except Exception:
+                    math = 2 - 4
                 driver.switch_to.window(initial_window_handle)
             else:
                 driver.switch_to.window(initial_window_handle)
@@ -503,9 +506,8 @@ def process_profile(idx, nugger):
         except TimeoutException:
             # If it takes too long, suggest a manual check.
             nugger.error("Transaction took too long. Recommend checking manually.")
-    except Exception as e:
+    finally:
         driver.close()
-        print(e)
 
 
 
